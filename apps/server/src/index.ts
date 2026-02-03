@@ -13,7 +13,9 @@ import UserRoute from "./routes/user/route.js";
 import JobRoute from  "./routes/job/route.js";
 
 // Middleware
-app.use(cors());
+app.use(cors({
+  origin : "*"
+}));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 

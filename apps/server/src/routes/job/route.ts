@@ -3,80 +3,107 @@ import { Router } from "express";
 const JobRoute: Router = express.Router();
 import type { Request, Response } from "express";
 import { prisma } from "db";
+import crypto from "crypto";
 
-const startJob = async (req : Request, res: Response)=>{
-    const {userId} = req.body;
-    if (!userId) {
-      return res.status(400).json({ 
-        success: false, 
-        error: "UserId is required" 
-      });
-    }
-    try{
-       const userExists = await prisma.user.findUnique({
-            where: { id: parseInt(userId) }
-        });
-        
-        if (!userExists) {
-            return res.status(404).json({
-                success: false,
-                error: `User with ID ${userId} does not exist`
-            });
-        }
-        const job = await prisma.job.create({
-            data : {
-                userId : parseInt(userId),
-                status : "PROCESSING"
-            }
-        });
+const startJob = async (req: Request, res: Response) => {
+  const { userId } = req.body;
 
-        res.status(201).json({ 
-          success: true, 
-          data: job 
-        });
-    }
-    catch(error){
-      console.error("Error creating Job:", error);
-      res.status(500).json({ 
-      success: false, 
-      error: "Failed to create Job" 
-    });
-    }
-}
-
-const updateJob = async (req: Request, res : Response)=>{
-    const { id } : any = req.params;
-    const updatedData = req.body;
-    if (!id) { 
-      return res.status(400).json({ 
-        success: false, 
-        error: "UserId is required" 
-      });
-    }
-    try{
-      
-
-        const updated = await prisma.job.update({
-            where : {
-                id : parseInt(id)
-            },
-            data : updatedData
-        });
-
-         res.json({  
-           success: true, 
-           data: updated 
-         });
-    }
-    catch(error){
-    console.error("Error updating job:", error);
-    res.status(500).json({ 
+  if (!userId) {
+    return res.status(400).json({
       success: false,
-       error: "Failed to update job" 
+      error: "UserId is required",
     });
-    }
-}
+  }
 
+  const path = `${userId}/${crypto.randomUUID()}.mp3`;
+
+  try {
+    const userExists = await prisma.user.findUnique({
+      where: { id: parseInt(userId) },
+    });
+
+    if (!userExists) {
+      return res.status(404).json({
+        success: false,
+        error: `User with ID ${userId} does not exist`,
+      });
+    }
+
+    const job = await prisma.job.create({
+      data: {
+        userId: parseInt(userId),
+        status: "PENDING",
+        inputUrl: path,
+      },
+    });
+
+    // just return the job and path, frontend handles the upload
+    res.status(201).json({
+      success: true,
+      data: job,
+      path: path,
+    });
+  } catch (error) {
+    console.error("Error creating Job:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to create Job",
+    });
+  }
+};
+
+const updateJob = async (req: Request, res: Response) => {
+  const { id }: any = req.params;
+  const updatedData = req.body;
+
+  if (!id) {
+    return res.status(400).json({
+      success: false,
+      error: "Id is required",
+    });
+  }
+
+  try {
+    const updated = await prisma.job.update({
+      where: {
+        id: parseInt(id),
+      },
+      data: updatedData,
+    });
+
+    res.json({
+      success: true,
+      data: updated,
+    });
+  } catch (error) {
+    console.error("Error updating job:", error);
+    res.status(500).json({
+      success: false,
+      error: "Failed to update job",
+    });
+  }
+};
+
+const Webhook = async (req: Request, res: Response) => {
+  try {
+    const payload = req.body;
+    const path = payload?.record.name;
+
+    await prisma.job.updateMany({
+      where: { inputUrl: path },
+      data: {
+        status: "PROCESSING",
+      },
+    });
+
+    return res.sendStatus(200);
+  } catch (error) {
+    console.error("Webhook error:", error);
+    return res.sendStatus(500);
+  }
+};
+
+JobRoute.post("/storage-webhook", Webhook);
 JobRoute.post("/create", startJob);
 JobRoute.patch("/update/:id", updateJob);
 
