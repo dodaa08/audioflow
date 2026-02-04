@@ -1,5 +1,5 @@
 import { Worker } from "bullmq";
-import { redis } from "../lib/redis.js"; // or shared lib
+import { redis } from "../lib/redis.js";
 
 new Worker(
   "audio-transcribe",
