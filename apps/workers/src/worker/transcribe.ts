@@ -9,10 +9,6 @@ new Worker(
 
     console.log("Processing:", path);
 
-    await prisma.job.updateMany({
-      where: { inputUrl: path },
-      data: { status: "COMPLETED" },
-    });
   },
   { connection: redis }
 );
