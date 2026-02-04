@@ -23,6 +23,8 @@
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.6",
     "@types/node": "^25.1.0",
+    "bullmq": "^5.67.2",
+    "ioredis": "^5.9.2",
     "nodemon": "^3.1.0",
     "rimraf": "^5.0.5",
     "tsx": "^4.7.0"

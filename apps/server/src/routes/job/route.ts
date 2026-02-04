@@ -4,6 +4,8 @@ const JobRoute: Router = express.Router();
 import type { Request, Response } from "express";
 import { prisma } from "db";
 import crypto from "crypto";
+import { AudioTranscribeQueue } from "../../queues/transcription.queue.js";
+
 
 const startJob = async (req: Request, res: Response) => {
   const { userId } = req.body;
@@ -89,12 +91,27 @@ const Webhook = async (req: Request, res: Response) => {
     const payload = req.body;
     const path = payload?.record.name;
 
-    await prisma.job.updateMany({
-      where: { inputUrl: path },
+    const job = await prisma.job.updateMany({
+      where: { inputUrl: path, status : "PENDING" },
       data: {
         status: "PROCESSING",
       },
     });
+
+    if(job.count == 0){
+      console.log("Ended here at job count 0..");
+      return res.sendStatus(200);
+    }
+
+    // push the path to the queue;
+    await AudioTranscribeQueue.add("transcribe", {path}, {
+      jobId : path,
+      attempts : 5,
+      backoff: { type: "exponential", delay: 5000 },
+      removeOnComplete: true,
+      removeOnFail: false,
+    });
+    console.log("Added the audio path to queue..", path);
 
     return res.sendStatus(200);
   } catch (error) {

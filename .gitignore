@@ -32,11 +32,18 @@ Thumbs.db
 !.vscode/settings.json
 .idea/
 
+# Build outputs only
+dist/
+build/
+.next/
+.turbo/
+
 # TypeScript
 *.tsbuildinfo
 
 # Compiled files
-*.js
-*.d.ts
-*.map
 !*.config.js
+
+
+# lock files
+*-lock
