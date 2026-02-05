@@ -4,9 +4,12 @@ import { supabase } from "../lib/supabase.js";
 import {openai} from "../lib/openAi.js"
 
 new Worker(
-  "audio-transcribe",
+  "transcribe",
   async (job) => {
     const { path } = job.data;
+    if(path == null){
+      console.log("No paths in the queue...");
+    }
 
     console.log("Processing:", path);
 
@@ -18,10 +21,12 @@ new Worker(
         if (error) throw error;
         if (!data) throw new Error("File not found in bucket");
 
+        console.log("File downaloaded..", data);
         const ext = path.split(".").pop();
         const buffer = Buffer.from(await data.arrayBuffer());
         const file = new File([buffer], `audio.${ext}`);
 
+        console.log("File", file);
 
         const transcription = await openai.audio.transcriptions.create({
           file,

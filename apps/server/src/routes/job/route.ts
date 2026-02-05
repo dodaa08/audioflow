@@ -119,7 +119,26 @@ const Webhook = async (req: Request, res: Response) => {
   }
 };
 
+
+
+const PushNotificationsWebhook = async (req : Request, res : Response)=>{
+  
+  try{
+
+    // mark in the DB as completed
+    // Send a push notification to the client about the job to be completed..
+  
+  
+  }
+  catch(error){
+
+  }
+
+}
+
+
 JobRoute.post("/storage-webhook", Webhook);
+JobRoute.post("/Completed", PushNotificationsWebhook);
 JobRoute.post("/create", startJob);
 JobRoute.patch("/update/:id", updateJob);
 
