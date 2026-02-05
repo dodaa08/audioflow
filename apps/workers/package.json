@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "type": "module",
-   "scripts": {
+  "scripts": {
     "dev": "tsx src/index.ts",
     "build": "tsc",
     "start": "node dist/index.js"
@@ -11,12 +11,15 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "description": "",
+  "description": "  ",
   "dependencies": {
-    "db" : "workspace:*",
+    "@supabase/supabase-js": "^2.93.3",
     "bullmq": "^5.67.2",
+    "db": "workspace:*",
     "dotenv": "^17.2.3",
-    "ioredis": "^5.9.2"
+    "fs": "0.0.1-security",
+    "ioredis": "^5.9.2",
+    "openai": "^6.17.0"
   },
   "devDependencies": {
     "@types/node": "^25.2.0",
