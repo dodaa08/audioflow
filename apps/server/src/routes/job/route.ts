@@ -108,8 +108,9 @@ const Webhook = async (req: Request, res: Response) => {
       attempts : 5,
       backoff: { type: "exponential", delay: 5000 },
       removeOnComplete: true,
-      removeOnFail: false,
     });
+
+
     console.log("Added the audio path to queue..", path);
 
     return res.sendStatus(200);

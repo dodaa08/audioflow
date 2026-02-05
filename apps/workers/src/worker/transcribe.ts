@@ -1,48 +1,69 @@
+import { supabase } from "../lib/supabase.js";
+import { client } from "../lib/AssemblyAI.js";
 import { Worker } from "bullmq";
 import { redis } from "../lib/redis.js";
-import { supabase } from "../lib/supabase.js";
-import {openai} from "../lib/openAi.js"
+import { DeadAudioQueue } from "../queues/DeadQueue.js";
+import { prisma } from "db";
 
-new Worker(
+export async function transcribeAudio(path: string) {
+  if (!path) throw new Error("Path required");
+
+  console.log("Processing:", path);
+
+  const { data, error } = await supabase.storage
+    .from("test")
+    .createSignedUrl(path, 60);
+
+  if (error) throw error;
+
+  const transcript = await client.transcripts.transcribe({
+    audio: data.signedUrl,
+    language_detection: true,
+    speech_models: ["universal-2"],
+  });
+
+  console.log("Transcript:", transcript.text);
+
+  return transcript.text;
+}
+
+
+const worker = new Worker(
   "transcribe",
   async (job) => {
     const { path } = job.data;
-    if(path == null){
+
+    if (!path) {
       console.log("No paths in the queue...");
+      return;
     }
 
-    console.log("Processing:", path);
+    const text = await transcribeAudio(path);
 
-    try{
-      const { data, error } = await supabase.storage
-        .from("test")
-        .download(path);
-
-        if (error) throw error;
-        if (!data) throw new Error("File not found in bucket");
-
-        console.log("File downaloaded..", data);
-        const ext = path.split(".").pop();
-        const buffer = Buffer.from(await data.arrayBuffer());
-        const file = new File([buffer], `audio.${ext}`);
-
-        console.log("File", file);
-
-        const transcription = await openai.audio.transcriptions.create({
-          file,
-          model : "whisper-1"
-        });
-
-        console.log(transcription.text);
-
-        return { success: true };
-
-    }
-    catch(error){
-      console.error(error);
-      throw error;
-    }
-
+    return { success: true, text };
   },
-  { connection: redis }
+  { connection: redis, concurrency: 3,}
 );
+
+worker.on("failed", async (job, err) => {
+  if (!job) return;
+
+  if (job.attemptsMade >= (job.opts.attempts ?? 1)) {
+    console.log("Moving job to Dead Queue:", job.id);
+
+    await DeadAudioQueue.add("DAQ", job.data, {
+      removeOnComplete: false,
+    });
+
+    await prisma.job.updateMany({
+      where: { inputUrl: job.data.path },
+      data: { status: "FAILED" },
+    });
+
+  }
+
+  if(err) {
+    console.log("Error", err);
+    return;
+  }
+});

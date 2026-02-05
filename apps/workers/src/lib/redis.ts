@@ -10,3 +10,5 @@ console.log("🔍 REDIS_URL value:", process.env.REDIS_URL?.substring(0, 30) + "
 export const redis = new Redis(process.env.REDIS_URL!, {
   maxRetriesPerRequest: null,
 });
+
+

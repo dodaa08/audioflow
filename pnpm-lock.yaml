@@ -27,6 +27,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.93.3
         version: 2.93.3
+      assemblyai:
+        specifier: ^4.23.0
+        version: 4.23.0
       cors:
         specifier: ^2.8.6
         version: 2.8.6
@@ -116,6 +119,9 @@ importers:
       '@supabase/supabase-js':
         specifier: ^2.93.3
         version: 2.93.3
+      assemblyai:
+        specifier: ^4.23.0
+        version: 4.23.0
       bullmq:
         specifier: ^5.67.2
         version: 5.67.2
@@ -1076,6 +1082,10 @@ packages:
   arraybuffer.prototype.slice@1.0.4:
     resolution: {integrity: sha512-BNoCY6SXXPQ7gF2opIP4GBE+Xw7U+pHMYKuzjgCN3GwiaIR09UUeKfheyIry77QtrCBlC0KK0q5/TER/tYh3PQ==}
     engines: {node: '>= 0.4'}
+
+  assemblyai@4.23.0:
+    resolution: {integrity: sha512-UtmCR4QD5qDy6uYLC+LJJmn8vcUrKOIXbS2VrciiPOSYrBoL+o18SbAZ/viwN4WoNAowKu9dPgvE+F7McebMgA==}
+    engines: {node: '>=18'}
 
   async-function@1.0.0:
     resolution: {integrity: sha512-hsU18Ae8CDTR6Kgu9DYf0EbCr/a5iGL0rytQDobUcdpYOKokk8LEjVphnXkDkgpi0wYVsqrXuP0bZxJaTqdgoA==}
@@ -3475,6 +3485,13 @@ snapshots:
       es-errors: 1.3.0
       get-intrinsic: 1.3.0
       is-array-buffer: 3.0.5
+
+  assemblyai@4.23.0:
+    dependencies:
+      ws: 8.19.0
+    transitivePeerDependencies:
+      - bufferutil
+      - utf-8-validate
 
   async-function@1.0.0: {}
 

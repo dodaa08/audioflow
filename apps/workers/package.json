@@ -14,6 +14,7 @@
   "description": "  ",
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
+    "assemblyai": "^4.23.0",
     "bullmq": "^5.67.2",
     "db": "workspace:*",
     "dotenv": "^17.2.3",

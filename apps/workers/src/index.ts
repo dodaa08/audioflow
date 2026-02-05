@@ -1,4 +1,4 @@
 import "dotenv/config";
 import "./worker/transcribe.js";
 
-console.log("Worker service started");
+console.log("🚀 Workers started...");

@@ -13,6 +13,7 @@
   "license": "ISC",
   "dependencies": {
     "@supabase/supabase-js": "^2.93.3",
+    "assemblyai": "^4.23.0",
     "cors": "^2.8.6",
     "db": "workspace:*",
     "dotenv": "^17.2.3",
