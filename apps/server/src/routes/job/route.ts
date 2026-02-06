@@ -5,6 +5,7 @@ import type { Request, Response } from "express";
 import { prisma } from "db";
 import crypto from "crypto";
 import { AudioTranscribeQueue } from "../../queues/transcription.queue.js";
+import { supabase } from "../../lib/supabase.js";
 
 const startJob = async (req: Request, res: Response) => {
   const { userId } = req.body;
@@ -121,25 +122,44 @@ const Webhook = async (req: Request, res: Response) => {
 };
 
 
-
 const PushNotificationsWebhook = async (req : Request, res : Response)=>{
-  
+  const payload = req.body;
+  const path = payload?.record.name;
   try{
+    // Update the db job as complted
+    const JobStatus = await prisma.job.updateMany({
+      where: {inputUrl : path},
+      data : {  
+        status : "COMPLETED"
+      }
+    });
 
-    // mark in the DB as completed
-    // Send a push notification to the client about the job to be completed..
-  
-  
+    console.log("JOb Completed..", JobStatus);
+
+    // fetch the text data and send it to the user
+    const {data, error} = await supabase.storage.from("transcription").createSignedUploadUrl(path);
+    
+    if (error) throw error;
+
+
+    // have a function here to call and push the notification to the user
+
+    return res.json({
+      success: true,
+      url: data.signedUrl,
+    });
+
   }
   catch(error){
-
+    console.error(error);
+    return res.sendStatus(500);
   }
 
 }
 
 
 JobRoute.post("/storage-webhook", Webhook);
-JobRoute.post("/Completed", PushNotificationsWebhook);
+JobRoute.post("/Completed-webhook", PushNotificationsWebhook);
 JobRoute.post("/create", startJob);
 JobRoute.patch("/update/:id", updateJob);
 

@@ -4,6 +4,8 @@ import { Worker } from "bullmq";
 import { redis } from "../lib/redis.js";
 import { DeadAudioQueue } from "../queues/DeadQueue.js";
 import { prisma } from "db";
+import { PushtoSupabase } from "../lib/supabase.js";
+
 
 export async function transcribeAudio(path: string) {
   if (!path) throw new Error("Path required");
@@ -21,9 +23,7 @@ export async function transcribeAudio(path: string) {
     language_detection: true,
     speech_models: ["universal-2"],
   });
-
-  console.log("Transcript:", transcript.text);
-
+  
   return transcript.text;
 }
 
@@ -40,7 +40,30 @@ const worker = new Worker(
 
     const text = await transcribeAudio(path);
 
-    return { success: true, text };
+    if (!text) {
+    throw new Error("Transcript text missing");
+  }
+
+  if(text == ""){
+      console.log("No words found in the audio");
+      return {
+        success : true,
+        message : "Audio did not have text"
+      }
+  }
+
+  console.log("Transcript:", text);
+
+  const buffer = Buffer.from(text, "utf-8");
+
+  await PushtoSupabase({
+    path : `${path}.txt`,
+    file : buffer
+  });
+  console.log("File uploaded to the bucket..");  
+
+  return;
+
   },
   { connection: redis, concurrency: 3,}
 );
@@ -60,6 +83,7 @@ worker.on("failed", async (job, err) => {
       data: { status: "FAILED" },
     });
 
+    return;
   }
 
   if(err) {
