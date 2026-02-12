@@ -48,9 +48,18 @@ importers:
       openai:
         specifier: ^6.17.0
         version: 6.17.0(ws@8.19.0)
+      redis:
+        specifier: workspace:*
+        version: link:../../packages/redis
+      supabase:
+        specifier: workspace:*
+        version: link:../../packages/supabase
       typescript:
         specifier: ^5.9.3
         version: 5.9.3
+      ws:
+        specifier: ^8.19.0
+        version: 8.19.0
     devDependencies:
       '@types/cors':
         specifier: ^2.8.19
@@ -61,6 +70,9 @@ importers:
       '@types/node':
         specifier: ^25.1.0
         version: 25.1.0
+      '@types/ws':
+        specifier: ^8.18.1
+        version: 8.18.1
       bullmq:
         specifier: ^5.67.2
         version: 5.67.2
@@ -94,6 +106,9 @@ importers:
       react-dom:
         specifier: 19.2.3
         version: 19.2.3(react@19.2.3)
+      supabase:
+        specifier: workspace:*
+        version: link:../../packages/supabase
     devDependencies:
       '@tailwindcss/postcss':
         specifier: ^4
@@ -140,6 +155,12 @@ importers:
       openai:
         specifier: ^6.17.0
         version: 6.17.0(ws@8.19.0)
+      redis:
+        specifier: workspace:*
+        version: link:../../packages/redis
+      supabase:
+        specifier: workspace:*
+        version: link:../../packages/supabase
     devDependencies:
       '@types/node':
         specifier: ^25.2.0
@@ -208,6 +229,41 @@ importers:
       typescript-eslint:
         specifier: ^8.50.0
         version: 8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)
+
+  packages/redis:
+    dependencies:
+      '@types/dotenv':
+        specifier: ^8.2.3
+        version: 8.2.3
+      bullmq:
+        specifier: ^5.67.2
+        version: 5.67.2
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
+      ioredis:
+        specifier: ^5.9.2
+        version: 5.9.2
+    devDependencies:
+      '@types/node':
+        specifier: ^25.2.2
+        version: 25.2.2
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+
+  packages/supabase:
+    dependencies:
+      '@supabase/supabase-js':
+        specifier: ^2.93.3
+        version: 2.93.3
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+    devDependencies:
+      dotenv:
+        specifier: ^17.2.3
+        version: 17.2.3
 
   packages/typescript-config: {}
 
@@ -897,6 +953,10 @@ packages:
   '@types/cors@2.8.19':
     resolution: {integrity: sha512-mFNylyeyqN93lfe/9CSxOGREz8cpzAhH+E93xJ4xWQf62V8sQ/24reV2nyzUWM6H6Xji+GGHpkbLe7pVoUEskg==}
 
+  '@types/dotenv@8.2.3':
+    resolution: {integrity: sha512-g2FXjlDX/cYuc5CiQvyU/6kkbP1JtmGzh0obW50zD7OKeILVL0NSpPWLXVfqoAGQjom2/SLLx9zHq0KXvD6mbw==}
+    deprecated: This is a stub types definition. dotenv provides its own type definitions, so you do not need this installed.
+
   '@types/estree@1.0.8':
     resolution: {integrity: sha512-dWHzHa2WqEXI/O1E9OjrocMTKJl2mSrEolh1Iomrv6U+JuNwaHXsXx9bLu5gG7BUWFIN0skIQJQ/L1rIex4X6w==}
 
@@ -923,6 +983,9 @@ packages:
 
   '@types/node@25.2.0':
     resolution: {integrity: sha512-DZ8VwRFUNzuqJ5khrvwMXHmvPe+zGayJhr2CDNiKB1WBE1ST8Djl00D0IC4vvNmHMdj6DlbYRIaFE7WHjlDl5w==}
+
+  '@types/node@25.2.2':
+    resolution: {integrity: sha512-BkmoP5/FhRYek5izySdkOneRyXYN35I860MFAGupTdebyE66uZaR+bXLHq8k4DirE5DwQi3NuhvRU1jqTVwUrQ==}
 
   '@types/phoenix@1.6.7':
     resolution: {integrity: sha512-oN9ive//QSBkf19rfDv45M7eZPi0eEXylht2OLEXicu5b4KoQ1OzXIw+xDSGWxSxe1JmepRR/ZH283vsu518/Q==}
@@ -3235,6 +3298,10 @@ snapshots:
     dependencies:
       '@types/node': 25.2.0
 
+  '@types/dotenv@8.2.3':
+    dependencies:
+      dotenv: 17.2.3
+
   '@types/estree@1.0.8': {}
 
   '@types/express-serve-static-core@5.1.1':
@@ -3270,6 +3337,10 @@ snapshots:
     dependencies:
       undici-types: 7.16.0
 
+  '@types/node@25.2.2':
+    dependencies:
+      undici-types: 7.16.0
+
   '@types/phoenix@1.6.7': {}
 
   '@types/qs@6.14.0': {}
@@ -3295,7 +3366,7 @@ snapshots:
 
   '@types/ws@8.18.1':
     dependencies:
-      '@types/node': 25.2.0
+      '@types/node': 25.2.2
 
   '@typescript-eslint/eslint-plugin@8.50.0(@typescript-eslint/parser@8.50.0(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2))(eslint@9.39.1(jiti@2.6.1))(typescript@5.9.2)':
     dependencies:

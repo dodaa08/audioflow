@@ -11,4 +11,8 @@ export const redis = new Redis(process.env.REDIS_URL!, {
   maxRetriesPerRequest: null,
 });
 
+export const publisher = new Redis(process.env.REDIS_URL!);
 
+export const subscriber = new Redis(process.env.REDIS_URL!);
+
+console.log("Redis connections created");

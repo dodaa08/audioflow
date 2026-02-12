@@ -1,11 +1,9 @@
-import { supabase } from "../lib/supabase.js";
+import { supabase } from "supabase";
 import { client } from "../lib/AssemblyAI.js";
 import { Worker } from "bullmq";
-import { redis } from "../lib/redis.js";
-import { DeadAudioQueue } from "../queues/DeadQueue.js";
+import { redis, DeadAudioQueue, publisher, CHANNELS } from "redis";
 import { prisma } from "db";
-import { PushtoSupabase } from "../lib/supabase.js";
-
+import { PushtoSupabase } from "supabase";
 
 export async function transcribeAudio(path: string) {
   if (!path) throw new Error("Path required");
@@ -27,11 +25,11 @@ export async function transcribeAudio(path: string) {
   return transcript.text;
 }
 
-
 const worker = new Worker(
   "transcribe",
   async (job) => {
-    const { path } = job.data;
+    const { path, jobId, userId } = job.data;
+    console.log("path, jobId, useriD", path, jobId, userId);
 
     if (!path) {
       console.log("No paths in the queue...");
@@ -56,13 +54,27 @@ const worker = new Worker(
 
   const buffer = Buffer.from(text, "utf-8");
 
-  await PushtoSupabase({
+  const pushed = await PushtoSupabase({
     path : `${path}.txt`,
     file : buffer
   });
-  console.log("File uploaded to the bucket..");  
 
-  return;
+  if(pushed){
+    console.log("File uploaded to the bucket..");
+    const payload = {
+      jobId : jobId,
+      userId : userId,
+      originalPath: path,
+      transcriptionPath: `${path}.txt`,
+      publicUrl: pushed.publicUrl,
+      text,
+      timestamp: new Date().toISOString(),
+    }
+    await publisher.publish(CHANNELS.TRANSCRIPTION_COMPLETE, JSON.stringify(payload));
+    
+    console.log("Published to transcription:complete channel");
+  }
+   return { success: true, publicUrl: pushed.publicUrl };
 
   },
   { connection: redis, concurrency: 3,}
@@ -82,6 +94,13 @@ worker.on("failed", async (job, err) => {
       where: { inputUrl: job.data.path },
       data: { status: "FAILED" },
     });
+
+    await publisher.publish(
+      CHANNELS.TRANSCRIPTION_FAILED,
+      JSON.stringify({
+        data : "No data"
+      })
+    );
 
     return;
   }

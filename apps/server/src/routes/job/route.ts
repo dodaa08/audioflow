@@ -4,8 +4,8 @@ const JobRoute: Router = express.Router();
 import type { Request, Response } from "express";
 import { prisma } from "db";
 import crypto from "crypto";
-import { AudioTranscribeQueue } from "../../queues/transcription.queue.js";
-import { supabase } from "../../lib/supabase.js";
+import { supabase } from "supabase";
+import { AudioTranscribeQueue } from "redis";
 
 const startJob = async (req: Request, res: Response) => {
   const { userId } = req.body;
@@ -45,12 +45,15 @@ const startJob = async (req: Request, res: Response) => {
       data: job,
       path: path,
     });
+
   } catch (error) {
+
     console.error("Error creating Job:", error);
     res.status(500).json({
       success: false,
       error: "Failed to create Job",
     });
+
   }
 };
 
@@ -77,6 +80,7 @@ const updateJob = async (req: Request, res: Response) => {
       success: true,
       data: updated,
     });
+
   } catch (error) {
     console.error("Error updating job:", error);
     res.status(500).json({
@@ -91,26 +95,33 @@ const Webhook = async (req: Request, res: Response) => {
     const payload = req.body;
     const path = payload?.record.name;
 
-    await prisma.job.updateMany({
-      where: { inputUrl: path, status : "PENDING" },
-      data: {
-        status: "PROCESSING",
-      },
-    });
+     if (!path.match(/\.(mp3|wav|m4a|ogg)$/i)) {
+      console.log("Skipping non-audio:", path);
+      return res.sendStatus(200);
+    }
 
-    // if(job.count == 0){
-    //   console.log("Ended here at job count 0..");
-    //   return res.sendStatus(200);
-    // }
+//     const job = await prisma.job.findFirst({
+//   where: { inputUrl: path },
+//   select: {
+//     id: true,
+//     userId: true
+//   }
+// });
 
-    // push the path to the queue;
-    await AudioTranscribeQueue.add("transcribe", {path}, {
-      jobId : path,
-      attempts : 5,
+//     if (!job) return res.sendStatus(404);
+
+await prisma.job.updateMany({
+  where: { inputUrl: path  },
+  data: { status: "PROCESSING" }
+});
+
+    
+    await AudioTranscribeQueue.add("transcribe", { path
+ }, {
+      attempts: 5,
       backoff: { type: "exponential", delay: 5000 },
       removeOnComplete: true,
     });
-
 
     console.log("Added the audio path to queue..", path);
 
@@ -121,45 +132,45 @@ const Webhook = async (req: Request, res: Response) => {
   }
 };
 
+// const PushNotificationsWebhook = async (req: Request, res: Response) => {
+//   const payload = req.body;
+//   const path = payload?.record.name;
+  
+//   try {
+//     // Update the db job as complted
+//     const JobStatus = await prisma.job.updateMany({
+//       where: { inputUrl: path },
+//       data: {
+//         status: "COMPLETED"
+//       }
+//     });
 
-const PushNotificationsWebhook = async (req : Request, res : Response)=>{
-  const payload = req.body;
-  const path = payload?.record.name;
-  try{
-    // Update the db job as complted
-    const JobStatus = await prisma.job.updateMany({
-      where: {inputUrl : path},
-      data : {  
-        status : "COMPLETED"
-      }
-    });
+//     console.log("JOb Completed..", JobStatus);
 
-    console.log("JOb Completed..", JobStatus);
+//     // fetch the text data and send it to the user
+//     const { data, error } = await supabase.storage.from("transcription").createSignedUploadUrl(path);
 
-    // fetch the text data and send it to the user
-    const {data, error} = await supabase.storage.from("transcription").createSignedUploadUrl(path);
-    
-    if (error) throw error;
+//     if (error) throw error;
 
 
-    // have a function here to call and push the notification to the user
+//     // have a function here to call and push the notification to the user
 
-    return res.json({
-      success: true,
-      url: data.signedUrl,
-    });
+//     return res.json({
+//       success: true,
+//       url: data.signedUrl,
+//     });
 
-  }
-  catch(error){
-    console.error(error);
-    return res.sendStatus(500);
-  }
+//   }
+//   catch (error) {
+//     console.error(error);
+//     return res.sendStatus(500);
+//   }
 
-}
+// }
 
 
 JobRoute.post("/storage-webhook", Webhook);
-JobRoute.post("/Completed-webhook", PushNotificationsWebhook);
+// JobRoute.post("/Completed-webhook", PushNotificationsWebhook);
 JobRoute.post("/create", startJob);
 JobRoute.patch("/update/:id", updateJob);
 

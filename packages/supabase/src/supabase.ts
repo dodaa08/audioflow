@@ -1,5 +1,7 @@
-import { createClient } from "@supabase/supabase-js";
+import dotenv from "dotenv";
+dotenv.config();
 
+import { createClient } from "@supabase/supabase-js";
 
 export const supabase = createClient(
   process.env.SUPABASE_URL!,
@@ -12,7 +14,6 @@ type PushToSupabaseParams = {
   contentType?: string;
 };
 
-// Push transcriptions to bucket
 export const PushtoSupabase = async ({path, file, contentType = "text/plain"}: PushToSupabaseParams)=>{
   try{
     const {data, error} = await supabase.storage.from("transcriptions").upload(path, file, {
@@ -22,13 +23,16 @@ export const PushtoSupabase = async ({path, file, contentType = "text/plain"}: P
 
     if (error) throw error;
 
-    const { data: urlData } = supabase.storage
-        .from("transcriptions")
-        .getPublicUrl(path);
-
-    console.log("FIle uploaded successfully", urlData);
-    
-    return urlData;
+      const { data: urlData } = supabase.storage
+      .from("transcriptions")
+      .getPublicUrl(path);
+      
+      console.log("FIle uploaded successfully", urlData);
+      
+      return {
+        uploadData: data,
+        publicUrl: urlData.publicUrl
+      };
   }
   catch(error){
     console.error("Upload failed:", error);  
