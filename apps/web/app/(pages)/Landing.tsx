@@ -22,7 +22,6 @@ const Landing = ()=>{
       if (!file) return alert("No file selected");
 
       startLoading();
-
       
       const response = await axios.post("http://localhost:8080/api/jobs/create", {
         userId: 1,

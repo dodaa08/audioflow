@@ -4,7 +4,6 @@ const JobRoute: Router = express.Router();
 import type { Request, Response } from "express";
 import { prisma } from "db";
 import crypto from "crypto";
-import { supabase } from "supabase";
 import { AudioTranscribeQueue } from "redis";
 
 const startJob = async (req: Request, res: Response) => {
@@ -94,29 +93,21 @@ const Webhook = async (req: Request, res: Response) => {
   try {
     const payload = req.body;
     const path = payload?.record.name;
+    console.log("path", path);
 
      if (!path.match(/\.(mp3|wav|m4a|ogg)$/i)) {
       console.log("Skipping non-audio:", path);
       return res.sendStatus(200);
     }
+    
 
-//     const job = await prisma.job.findFirst({
-//   where: { inputUrl: path },
-//   select: {
-//     id: true,
-//     userId: true
-//   }
-// });
-
-//     if (!job) return res.sendStatus(404);
-
-await prisma.job.updateMany({
+const job = await prisma.job.update({
   where: { inputUrl: path  },
   data: { status: "PROCESSING" }
 });
 
     
-    await AudioTranscribeQueue.add("transcribe", { path
+    await AudioTranscribeQueue.add("transcribe", { path, jobId : job?.id
  }, {
       attempts: 5,
       backoff: { type: "exponential", delay: 5000 },
@@ -168,9 +159,36 @@ await prisma.job.updateMany({
 
 // }
 
+const JobComplete = async (req: Request, res : Response)=>{
+  console.log("Triggering the job complete webhook");
+  const payload = req.body;
+  const url = payload?.record.name.trim();
+  console.log("Path", url);
+  try{
+    const update = await prisma.job.update({
+   where : { inputUrl : url },
+   data : { status : "COMPLETED" }
+});
+
+console.log("Update result:", update);
+console.log("Webhook URL:", url);
+
+    if(!update){
+       return res.send("Failed to update the job");
+    }
+
+    res.status(200).json({
+       Message : "Job Completed"
+    });
+    console.log("JOb completed.");
+  }
+  catch(error){
+    console.log("Error Updating the status", error);
+  }
+}
 
 JobRoute.post("/storage-webhook", Webhook);
-// JobRoute.post("/Completed-webhook", PushNotificationsWebhook);
+JobRoute.post("/JobcompleteWBH", JobComplete);
 JobRoute.post("/create", startJob);
 JobRoute.patch("/update/:id", updateJob);
 

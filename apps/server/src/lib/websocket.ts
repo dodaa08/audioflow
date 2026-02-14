@@ -46,8 +46,6 @@ subscriber.on("message", (channel, message) => {
 
     const sockets = clients.get(userId);
 
-    console.log("Sockets", sockets);
-
 sockets?.forEach((client) => {
   if (client.readyState === WebSocket.OPEN) {
     

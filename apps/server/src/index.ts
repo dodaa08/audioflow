@@ -1,6 +1,6 @@
 // src/index.ts
 import dotenv from "dotenv";
-
+import path from "path";
 // Load env IMMEDIATELY, before any other imports
 dotenv.config();
 

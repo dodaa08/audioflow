@@ -55,7 +55,7 @@ const worker = new Worker(
   const buffer = Buffer.from(text, "utf-8");
 
   const pushed = await PushtoSupabase({
-    path : `${path}.txt`,
+    path : `${path}`,
     file : buffer
   });
 
@@ -65,7 +65,7 @@ const worker = new Worker(
       jobId : jobId,
       userId : userId,
       originalPath: path,
-      transcriptionPath: `${path}.txt`,
+      transcriptionPath: `${path}`,
       publicUrl: pushed.publicUrl,
       text,
       timestamp: new Date().toISOString(),
