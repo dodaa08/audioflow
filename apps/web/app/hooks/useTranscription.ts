@@ -7,7 +7,7 @@ export const useTranscription = (userId: string) => {
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket(`ws://localhost:8080?userId=${userId}`);
+    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}?userId=${userId}`);
     wsRef.current = ws;
 
     ws.onmessage = (event) => {
