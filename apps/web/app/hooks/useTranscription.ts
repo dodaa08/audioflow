@@ -3,6 +3,8 @@ import { useEffect, useRef, useState } from "react";
 export const useTranscription = (userId: string) => {
   const [transcription, setTranscription] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [isCompleted, setisCompleted] = useState(false);
+  const [isFailed, setisFailed] = useState(false);
   const WSUrl = process.env.NEXT_PUBLIC_WS_URL;
 
   const wsRef = useRef<WebSocket | null>(null);
@@ -17,11 +19,13 @@ export const useTranscription = (userId: string) => {
       if (message.type === "TRANSCRIPTION_COMPLETE") {
         setTranscription(message.data.text);
         setIsLoading(false);
+        setisCompleted(true);
       }
     };
 
     ws.onerror = () => {
       setIsLoading(false);
+      setisFailed(true);
     };
 
     ws.onclose = () => {
@@ -42,5 +46,7 @@ export const useTranscription = (userId: string) => {
     transcription,
     isLoading,
     startLoading,
+    isCompleted,
+    isFailed
   };
 };
