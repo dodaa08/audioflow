@@ -3,11 +3,12 @@ import { useEffect, useRef, useState } from "react";
 export const useTranscription = (userId: string) => {
   const [transcription, setTranscription] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const WSUrl = process.env.NEXT_PUBLIC_WS_URL;
 
   const wsRef = useRef<WebSocket | null>(null);
 
   useEffect(() => {
-    const ws = new WebSocket(`${process.env.NEXT_PUBLIC_WS_URL}?userId=${userId}`);
+    const ws = new WebSocket(`${WSUrl}?userId=${userId}`);
     wsRef.current = ws;
 
     ws.onmessage = (event) => {

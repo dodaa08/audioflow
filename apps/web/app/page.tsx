@@ -1,13 +1,9 @@
-import Landing from "./(pages)/Landing";
-import { Toaster } from 'react-hot-toast';
+import Landing from "./(pages)/Landing/page";
 
 const Home = () => {
   return (
     <>
-    <div>
-      <Toaster />
       <Landing />
-    </div>
     </>
   )
 };

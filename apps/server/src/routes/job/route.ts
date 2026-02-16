@@ -170,8 +170,6 @@ const JobComplete = async (req: Request, res : Response)=>{
    data : { status : "COMPLETED" }
 });
 
-console.log("Update result:", update);
-console.log("Webhook URL:", url);
 
     if(!update){
        return res.send("Failed to update the job");

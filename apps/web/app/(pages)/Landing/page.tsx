@@ -1,21 +1,32 @@
 "use client";
 import { useRef, useState, useEffect } from "react";
 import axios from "axios";
-import { supabase } from "../lib/supabase";
-import { useTranscription } from "../hooks/useTranscription";
+import { supabase } from "../../lib/supabase";
+import { useTranscription } from "../../hooks/useTranscription";
 import toast from "react-hot-toast";
+import { SupabaseConfigs } from "../../lib/supabase";
 
 const Landing = ()=>{
   const fileRef = useRef<HTMLInputElement>(null);
   const [audioSrc, setAudioSrc] = useState<string | null>(null);
-  const userId = "1";
+  const userId = process.env.NEXT_PUBLIC_DUMMY_USER || "1";
   const {isLoading, transcription, startLoading} = useTranscription(userId);
+  const BackendUrl = process.env.NEXT_PUBLIC_BACKENDURL || "";
 
   useEffect(() => {
     if (transcription) {
-      console.log(transcription);
+        toast.success("Audio File transcribed, they are ready!");
     }
   }, [transcription]);
+
+//   useEffect(() => {
+//   return () => {
+//     if (audioSrc?.startsWith("blob:")) {
+//       URL.revokeObjectURL(audioSrc);
+//     }
+//   };
+// }, [audioSrc]);
+
 
   const UploadToBucket = async () => {
     try {
@@ -24,26 +35,23 @@ const Landing = ()=>{
 
       startLoading();
       
-      const response = await axios.post("http://localhost:8080/api/jobs/create", {
-        userId: 1,
-      });
+      const response = await axios.post(`${BackendUrl}/api/jobs/create`, {userId});
 
       const { path } = response.data;
 
-      // 2. Upload file to Supabase using that path
+     
       const { data, error } = await supabase.storage
-        .from("test") // your bucket name
+        .from(SupabaseConfigs.Buckets.Audio)
         .upload(path, file, {
           contentType: file.type,
           upsert: true,
         });
 
       if (error) throw error;
-      console.log("Data", data);
 
-      // 3. Get the public URL so you can play it
+     
       const { data: urlData } = supabase.storage
-        .from("test")
+        .from(SupabaseConfigs.Buckets.Audio)
         .getPublicUrl(path);
 
       setAudioSrc(urlData.publicUrl);
@@ -54,31 +62,47 @@ const Landing = ()=>{
     }
   };
 
+  const handleFileChange = () => {
+  const file = fileRef.current?.files?.[0];
+  if (!file) return;
+
+  const localUrl = URL.createObjectURL(file);
+  setAudioSrc(localUrl);
+};
+
   return (
     <div className="min-h-screen bg-gray-100 flex items-center justify-center px-4">
       <div className="w-full max-w-lg bg-white rounded-xl shadow-md p-8  space-y-6">
 
-      <input ref={fileRef} type="file" accept="audio/*" className="hidden" id="file-upload" />
+      <input ref={fileRef} type="file" accept="audio/*" className="hidden" id="file-upload" onChange={handleFileChange} />
       <label
        htmlFor="file-upload"
        className="bg-white text-black px-6 py-3 rounded-lg font-mono cursor-pointer hover:text-gray-600 text-center">
         Choose an Audio File
       </label>
-      <button onClick={UploadToBucket} className="bg-blue-400 text-white cursor-pointer hover:bg-blue-300 px-4 py-2 rounded font-mono">
-         Transcribe Audio
-      </button>
-      {audioSrc && <audio controls src={audioSrc} />}
+
+      {audioSrc && (
+  <div className="mt-4">
+    <audio controls className="w-full">
+      <source src={audioSrc} />
+      Your browser does not support the audio element.
+    </audio>
+  </div>
+)}
 
       <div className="flex">
-         {
-           isLoading && <>
-              <div className="flex justify-center items-center mt-5">
-                 <h1 className="text-black mt-2 font-serif">
-                       Transcribing Audio files
-                 </h1>
-              </div>
-            </>
-         }
+         {isLoading ? (
+  <div className="flex justify-center">
+    <div className="w-6 h-6 border-4 border-blue-400 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+) : (
+  <button
+    onClick={UploadToBucket}
+    className="bg-blue-400 text-white cursor-pointer hover:bg-blue-300 px-4 py-2 rounded font-mono"
+  >
+    Transcribe Audio
+  </button>
+)}
          {
            transcription && <div className="bg-white p-6 rounded-xl flex flex-col">
             <h1 className="text-black">Transcriptions:</h1>

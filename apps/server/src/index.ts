@@ -14,7 +14,6 @@ import { WebSocketServer } from "ws";
 import UserRoute from "./routes/user/route.js";
 import JobRoute from  "./routes/job/route.js";
 
-
 const app = express();
 const PORT = process.env.PORT || 8080;
 
