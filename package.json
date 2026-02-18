@@ -2,6 +2,11 @@
   "name": "turbo",
   "private": true,
   "scripts": {
+    "build:worker" : "cd ./apps/workers && tsc -b",
+    "start:worker" : "cd ./apps/workers && pnpm start",
+    "build:server" : "cd ./apps/server && tsc -b",
+    "db:generate" : "cd ./packages/DB && npx prisma generate",
+    "start:server" : "cd ./apps/server && pnpm start",
     "build": "turbo run build",
     "dev": "turbo run dev",
     "lint": "turbo run lint",

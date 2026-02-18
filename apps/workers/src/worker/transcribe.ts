@@ -2,7 +2,7 @@ import { supabase } from "supabase";
 import { client } from "../lib/AssemblyAI.js";
 import { Worker } from "bullmq";
 import { redis, DeadAudioQueue, publisher, CHANNELS } from "redis";
-import { prisma } from "db";
+// import { prisma } from "db";
 import { PushtoSupabase } from "supabase";
 
 export async function transcribeAudio(path: string) {
@@ -90,10 +90,10 @@ worker.on("failed", async (job, err) => {
       removeOnComplete: false,
     });
 
-    await prisma.job.updateMany({
-      where: { inputUrl: job.data.path },
-      data: { status: "FAILED" },
-    });
+    // await prisma.job.updateMany({
+    //   where: { inputUrl: job.data.path },
+    //   data: { status: "FAILED" },
+    // });
 
     await publisher.publish(
       CHANNELS.TRANSCRIPTION_FAILED,
